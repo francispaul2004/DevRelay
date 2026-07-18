@@ -10,10 +10,10 @@ This repository is developed through small scheduled maintenance runs and human 
 4. Preserve all user changes. If the worktree is dirty for reasons unrelated to the task, stop and report the conflict.
 5. Add or update tests for behavior changes and run the full standard-library test suite.
 6. Update `ROADMAP.md` and relevant documentation only when the implementation actually changes their status.
-7. Use a new `work/<short-description>` branch. Never force-push, merge the default branch, rewrite published history, or delete user branches.
+7. Use a new `work/<short-description>` branch. Never commit directly to the default branch, force-push, rewrite published history, or delete unrelated user branches.
 8. Keep all repository files and public Git metadata focused exclusively on the project. Remove unrelated provenance and tooling commentary.
 9. Run the public-text check before committing and again before pushing. Correct every reported issue instead of bypassing the check.
-10. Commit only files belonging to the selected task, push the branch, and open a draft pull request with validation results.
+10. Commit only files belonging to the selected task, push the branch, and open a ready pull request with validation results. Wait for required checks to complete successfully, squash-merge the pull request, delete its completed work branch, and synchronize the local default branch using fast-forward only. If a required check is pending or failing, or review is blocking, leave the pull request open for the next run; never bypass repository protections.
 11. If GitHub authentication or networking is unavailable, do not start a new implementation. Report the blocker instead.
 
 ## Quality bar
