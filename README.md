@@ -32,6 +32,25 @@ python3 -m pip install -e .
 devrelay snapshot --repo . --output HANDOFF.md
 ```
 
+## Project configuration
+
+DevRelay automatically reads `.devrelay.json` from the repository root. The
+file may provide safe defaults for snapshot output; command-line options take
+precedence.
+
+```json
+{
+  "snapshot": {
+    "format": "markdown",
+    "recent": 5
+  }
+}
+```
+
+`snapshot.format` accepts `markdown` or `json`, and `snapshot.recent` must be a
+non-negative integer. Unknown keys and invalid values are rejected with a
+concise error.
+
 ## Example handoff
 
 ```markdown
