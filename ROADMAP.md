@@ -11,7 +11,7 @@ Each scheduled run should complete at most one unchecked item, including tests a
 
 ## 0.2 — Useful session context
 
-- [ ] Add a project configuration file with safe defaults and schema validation.
+- [x] Add a project configuration file with safe defaults and schema validation.
 - [ ] Run configured verification commands and capture concise results.
 - [ ] Summarize staged and unstaged diff statistics.
 - [ ] Extract nearby TODO/FIXME markers with configurable exclusions.
@@ -29,4 +29,3 @@ Each scheduled run should complete at most one unchecked item, including tests a
 - [ ] Optionally include linked issue and pull-request metadata through `gh`.
 - [ ] Add a pull-request handoff template.
 - [ ] Publish signed release artifacts for macOS, Linux, and Windows.
-

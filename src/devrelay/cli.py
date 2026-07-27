@@ -8,7 +8,8 @@ import sys
 import tempfile
 
 from . import __version__
-from .git import GitRepositoryError, capture_snapshot
+from .config import ConfigurationError, load_config
+from .git import GitRepositoryError, capture_snapshot, repository_root
 from .render import render_json, render_markdown
 
 
@@ -25,16 +26,16 @@ def _parser() -> argparse.ArgumentParser:
     snapshot.add_argument(
         "--format",
         choices=("markdown", "json"),
-        default="markdown",
-        help="Output format (default: markdown).",
+        default=None,
+        help="Output format (default: project configuration or markdown).",
     )
     snapshot.add_argument("--output", help="Write to a file instead of standard output.")
     snapshot.add_argument(
         "--recent",
         type=int,
-        default=5,
+        default=None,
         metavar="COUNT",
-        help="Number of recent commits to include (default: 5).",
+        help="Recent commits to include (default: project configuration or 5).",
     )
     return parser
 
@@ -62,18 +63,22 @@ def main(arguments: list[str] | None = None) -> int:
     if options.command != "snapshot":
         parser.error("a command is required")
 
-    if options.recent < 0:
+    if options.recent is not None and options.recent < 0:
         parser.error("--recent must be zero or greater")
 
     try:
-        snapshot = capture_snapshot(options.repo, recent_limit=options.recent)
-        content = render_json(snapshot) if options.format == "json" else render_markdown(snapshot)
+        root = repository_root(options.repo)
+        config = load_config(root)
+        output_format = options.format or config.format
+        recent = options.recent if options.recent is not None else config.recent
+        snapshot = capture_snapshot(root, recent_limit=recent)
+        content = render_json(snapshot) if output_format == "json" else render_markdown(snapshot)
         if options.output:
             _atomic_write(Path(options.output), content)
         else:
             sys.stdout.write(content)
         return 0
-    except (GitRepositoryError, OSError) as error:
+    except (ConfigurationError, GitRepositoryError, OSError) as error:
         print(f"devrelay: {error}", file=sys.stderr)
         return 2
 
@@ -82,4 +87,3 @@ def entrypoint() -> None:
     """Console-script adapter."""
 
     raise SystemExit(main())
-

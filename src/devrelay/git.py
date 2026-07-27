@@ -68,12 +68,8 @@ def _recent_commits(repository: Path, limit: int) -> tuple[RecentCommit, ...]:
     return tuple(commits)
 
 
-def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> RepositorySnapshot:
-    """Capture the current Git context for *path*.
-
-    The path may point anywhere inside a worktree. Expected user errors are
-    normalized into :class:`GitRepositoryError` for concise CLI reporting.
-    """
+def repository_root(path: str | Path = ".") -> Path:
+    """Return the repository root containing *path*."""
 
     requested_path = Path(path).expanduser()
     if not requested_path.exists():
@@ -82,8 +78,17 @@ def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> Repositor
     root_text = _optional_git(requested_path, "rev-parse", "--show-toplevel")
     if not root_text:
         raise GitRepositoryError(f"Not a Git repository: {requested_path}")
+    return Path(root_text).resolve()
 
-    root = Path(root_text).resolve()
+
+def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> RepositorySnapshot:
+    """Capture the current Git context for *path*.
+
+    The path may point anywhere inside a worktree. Expected user errors are
+    normalized into :class:`GitRepositoryError` for concise CLI reporting.
+    """
+
+    root = repository_root(path)
     branch = _optional_git(root, "symbolic-ref", "--short", "-q", "HEAD") or "(detached HEAD)"
     head = _optional_git(root, "rev-parse", "--short", "HEAD")
     upstream = _optional_git(
@@ -117,4 +122,3 @@ def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> Repositor
         changes=_parse_status(status),
         recent_commits=_recent_commits(root, recent_limit),
     )
-
