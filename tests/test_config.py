@@ -30,6 +30,18 @@ class ConfigurationTests(unittest.TestCase):
                 SnapshotConfig(format="json", recent=12),
             )
 
+    def test_loads_verification_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(
+                directory,
+                {"verification": {"commands": [["python3", "-m", "unittest"]]}},
+            )
+
+            self.assertEqual(
+                load_config(Path(directory)).verification_commands,
+                (("python3", "-m", "unittest"),),
+            )
+
     def test_rejects_unknown_keys(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             self.write_config(directory, {"snapshot": {"output": "handoff.md"}})
@@ -65,6 +77,16 @@ class ConfigurationTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 ConfigurationError,
                 'snapshot.format must be "markdown" or "json"',
+            ):
+                load_config(Path(directory))
+
+    def test_rejects_invalid_verification_command(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(directory, {"verification": {"commands": ["test"]}})
+
+            with self.assertRaisesRegex(
+                ConfigurationError,
+                r"verification\.commands\[0\] must be a non-empty array of strings",
             ):
                 load_config(Path(directory))
 

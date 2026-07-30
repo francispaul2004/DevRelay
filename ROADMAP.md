@@ -12,7 +12,7 @@ Each scheduled run should complete at most one unchecked item, including tests a
 ## 0.2 — Useful session context
 
 - [x] Add a project configuration file with safe defaults and schema validation.
-- [ ] Run configured verification commands and capture concise results.
+- [x] Run configured verification commands and capture concise results.
 - [ ] Summarize staged and unstaged diff statistics.
 - [ ] Extract nearby TODO/FIXME markers with configurable exclusions.
 - [ ] Add a `check` command that reports whether a handoff is stale.

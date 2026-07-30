@@ -11,6 +11,7 @@ from . import __version__
 from .config import ConfigurationError, load_config
 from .git import GitRepositoryError, capture_snapshot, repository_root
 from .render import render_json, render_markdown
+from .verify import run_verification_commands
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -71,7 +72,14 @@ def main(arguments: list[str] | None = None) -> int:
         config = load_config(root)
         output_format = options.format or config.format
         recent = options.recent if options.recent is not None else config.recent
-        snapshot = capture_snapshot(root, recent_limit=recent)
+        verification_results = run_verification_commands(
+            root, config.verification_commands
+        )
+        snapshot = capture_snapshot(
+            root,
+            recent_limit=recent,
+            verification_results=verification_results,
+        )
         content = render_json(snapshot) if output_format == "json" else render_markdown(snapshot)
         if options.output:
             _atomic_write(Path(options.output), content)

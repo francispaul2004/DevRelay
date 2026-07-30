@@ -21,6 +21,7 @@ class SnapshotConfig:
 
     format: str = "markdown"
     recent: int = 5
+    verification_commands: tuple[tuple[str, ...], ...] = ()
 
 
 def _invalid(path: Path, message: str) -> ConfigurationError:
@@ -48,7 +49,7 @@ def load_config(repository_root: Path) -> SnapshotConfig:
         raise ConfigurationError(f"Could not read {path}: {error}") from error
 
     root = _object(payload, path, "top level")
-    unknown_root = sorted(set(root) - {"snapshot"})
+    unknown_root = sorted(set(root) - {"snapshot", "verification"})
     if unknown_root:
         raise _invalid(path, f"unknown top-level key: {unknown_root[0]}")
 
@@ -65,4 +66,30 @@ def load_config(repository_root: Path) -> SnapshotConfig:
     if isinstance(recent, bool) or not isinstance(recent, int) or recent < 0:
         raise _invalid(path, "snapshot.recent must be a non-negative integer")
 
-    return SnapshotConfig(format=output_format, recent=recent)
+    verification = _object(root.get("verification", {}), path, "verification")
+    unknown_verification = sorted(set(verification) - {"commands"})
+    if unknown_verification:
+        raise _invalid(path, f"unknown verification key: {unknown_verification[0]}")
+
+    commands = verification.get("commands", [])
+    if not isinstance(commands, list):
+        raise _invalid(path, "verification.commands must be an array")
+
+    validated_commands: list[tuple[str, ...]] = []
+    for index, command in enumerate(commands):
+        if (
+            not isinstance(command, list)
+            or not command
+            or any(not isinstance(argument, str) or not argument for argument in command)
+        ):
+            raise _invalid(
+                path,
+                f"verification.commands[{index}] must be a non-empty array of strings",
+            )
+        validated_commands.append(tuple(command))
+
+    return SnapshotConfig(
+        format=output_format,
+        recent=recent,
+        verification_commands=tuple(validated_commands),
+    )
