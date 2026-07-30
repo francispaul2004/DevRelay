@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
 
-from .models import FileChange, RecentCommit, RepositorySnapshot
+from .models import FileChange, RecentCommit, RepositorySnapshot, VerificationResult
 
 
 class GitRepositoryError(RuntimeError):
@@ -81,7 +81,11 @@ def repository_root(path: str | Path = ".") -> Path:
     return Path(root_text).resolve()
 
 
-def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> RepositorySnapshot:
+def capture_snapshot(
+    path: str | Path = ".",
+    recent_limit: int = 5,
+    verification_results: tuple[VerificationResult, ...] = (),
+) -> RepositorySnapshot:
     """Capture the current Git context for *path*.
 
     The path may point anywhere inside a worktree. Expected user errors are
@@ -121,4 +125,5 @@ def capture_snapshot(path: str | Path = ".", recent_limit: int = 5) -> Repositor
         behind=behind,
         changes=_parse_status(status),
         recent_commits=_recent_commits(root, recent_limit),
+        verification_results=verification_results,
     )

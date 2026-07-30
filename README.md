@@ -43,13 +43,21 @@ precedence.
   "snapshot": {
     "format": "markdown",
     "recent": 5
+  },
+  "verification": {
+    "commands": [
+      ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"]
+    ]
   }
 }
 ```
 
 `snapshot.format` accepts `markdown` or `json`, and `snapshot.recent` must be a
 non-negative integer. Unknown keys and invalid values are rejected with a
-concise error.
+concise error. Each verification command is an argument array, so DevRelay runs
+it directly from the repository root without shell interpretation. Snapshots
+include the exit code and up to 1,000 characters of combined output for each
+command.
 
 ## Example handoff
 

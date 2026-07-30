@@ -52,6 +52,17 @@ def render_markdown(snapshot: RepositorySnapshot) -> str:
     else:
         lines.append("No commits yet.")
 
+    lines.extend(["", "## Verification", ""])
+    if snapshot.verification_results:
+        for result in snapshot.verification_results:
+            status = "passed" if result.passed else f"failed ({result.exit_code})"
+            command = " ".join(result.command)
+            lines.append(f"- `{command}`: {status}")
+            if result.output:
+                lines.append(f"  - {result.output.replace(chr(10), ' ')}")
+    else:
+        lines.append("No verification commands configured.")
+
     lines.extend(
         [
             "",
@@ -64,4 +75,3 @@ def render_markdown(snapshot: RepositorySnapshot) -> str:
         ]
     )
     return "\n".join(lines)
-

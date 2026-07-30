@@ -5,6 +5,7 @@ from io import StringIO
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -110,6 +111,39 @@ class CliTests(unittest.TestCase):
             errors.getvalue(),
         )
         self.assertNotIn("Traceback", errors.getvalue())
+
+    def test_runs_configured_verification_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = self.make_repository(directory)
+            (repository / ".devrelay.json").write_text(
+                json.dumps(
+                    {
+                        "snapshot": {"format": "json"},
+                        "verification": {
+                            "commands": [
+                                [
+                                    sys.executable,
+                                    "-c",
+                                    "print('verification passed')",
+                                ],
+                                [sys.executable, "-c", "raise SystemExit(3)"],
+                            ]
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(["snapshot", "--repo", str(repository)])
+
+            self.assertEqual(result, 0)
+            verification = json.loads(output.getvalue())["verification_results"]
+            self.assertEqual(verification[0]["output"], "verification passed")
+            self.assertTrue(verification[0]["passed"])
+            self.assertEqual(verification[1]["exit_code"], 3)
+            self.assertFalse(verification[1]["passed"])
 
 
 if __name__ == "__main__":

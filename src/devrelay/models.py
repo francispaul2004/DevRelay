@@ -23,6 +23,19 @@ class RecentCommit:
 
 
 @dataclass(frozen=True, slots=True)
+class VerificationResult:
+    """Concise outcome from one configured verification command."""
+
+    command: tuple[str, ...]
+    exit_code: int
+    output: str
+
+    @property
+    def passed(self) -> bool:
+        return self.exit_code == 0
+
+
+@dataclass(frozen=True, slots=True)
 class RepositorySnapshot:
     """Portable description of a repository at one point in time."""
 
@@ -37,6 +50,7 @@ class RepositorySnapshot:
     behind: int | None
     changes: tuple[FileChange, ...]
     recent_commits: tuple[RecentCommit, ...]
+    verification_results: tuple[VerificationResult, ...]
 
     @property
     def is_dirty(self) -> bool:
@@ -47,5 +61,6 @@ class RepositorySnapshot:
 
         payload = asdict(self)
         payload["is_dirty"] = self.is_dirty
+        for result in payload["verification_results"]:
+            result["passed"] = result["exit_code"] == 0
         return payload
-
