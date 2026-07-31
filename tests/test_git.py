@@ -55,6 +55,24 @@ class SnapshotTests(unittest.TestCase):
             {(" M", "README.md"), ("??", "notes.txt")},
         )
 
+    def test_separates_staged_and_unstaged_diff_statistics(self) -> None:
+        temporary, repository = self.make_repository()
+        self.addCleanup(temporary.cleanup)
+        (repository / "README.md").write_text("# Changed\nNew line\n", encoding="utf-8")
+        run_git(repository, "add", "README.md")
+        (repository / "README.md").write_text(
+            "# Changed again\nNew line\nAnother line\n", encoding="utf-8"
+        )
+
+        snapshot = capture_snapshot(repository)
+
+        self.assertEqual(snapshot.staged_diff.files_changed, 1)
+        self.assertEqual(snapshot.staged_diff.additions, 2)
+        self.assertEqual(snapshot.staged_diff.deletions, 1)
+        self.assertEqual(snapshot.unstaged_diff.files_changed, 1)
+        self.assertEqual(snapshot.unstaged_diff.additions, 2)
+        self.assertEqual(snapshot.unstaged_diff.deletions, 1)
+
     def test_rejects_non_repository(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(GitRepositoryError, "Not a Git repository"):
@@ -63,4 +81,3 @@ class SnapshotTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

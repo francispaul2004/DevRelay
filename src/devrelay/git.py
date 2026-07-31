@@ -6,7 +6,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
 
-from .models import FileChange, RecentCommit, RepositorySnapshot, VerificationResult
+from .models import (
+    DiffStatistics,
+    FileChange,
+    RecentCommit,
+    RepositorySnapshot,
+    VerificationResult,
+)
 
 
 class GitRepositoryError(RuntimeError):
@@ -46,6 +52,23 @@ def _parse_status(output: str) -> tuple[FileChange, ...]:
             continue
         changes.append(FileChange(status=line[:2], path=line[3:]))
     return tuple(changes)
+
+
+def _diff_statistics(repository: Path, *arguments: str) -> DiffStatistics:
+    output = _run_git(repository, "diff", "--numstat", *arguments).stdout
+    files_changed = additions = deletions = binary_files = 0
+    for line in output.splitlines():
+        added, separator, remainder = line.partition("\t")
+        removed, separator, _ = remainder.partition("\t") if separator else ("", "", "")
+        if not separator:
+            continue
+        files_changed += 1
+        if added == "-" or removed == "-":
+            binary_files += 1
+            continue
+        additions += int(added)
+        deletions += int(removed)
+    return DiffStatistics(files_changed, additions, deletions, binary_files)
 
 
 def _recent_commits(repository: Path, limit: int) -> tuple[RecentCommit, ...]:
@@ -124,6 +147,8 @@ def capture_snapshot(
         ahead=ahead,
         behind=behind,
         changes=_parse_status(status),
+        staged_diff=_diff_statistics(root, "--cached"),
+        unstaged_diff=_diff_statistics(root),
         recent_commits=_recent_commits(root, recent_limit),
         verification_results=verification_results,
     )

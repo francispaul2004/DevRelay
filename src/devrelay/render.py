@@ -21,6 +21,13 @@ def _sync_summary(snapshot: RepositorySnapshot) -> str:
     return f"{snapshot.ahead} ahead, {snapshot.behind} behind `{snapshot.upstream}`"
 
 
+def _diff_summary(files_changed: int, additions: int, deletions: int, binary_files: int) -> str:
+    summary = f"{files_changed} file(s), +{additions}/-{deletions} lines"
+    if binary_files:
+        summary += f", {binary_files} binary file(s)"
+    return summary
+
+
 def render_markdown(snapshot: RepositorySnapshot) -> str:
     """Render a compact handoff document."""
 
@@ -43,6 +50,28 @@ def render_markdown(snapshot: RepositorySnapshot) -> str:
         lines.extend(f"- `{change.status} {change.path}`" for change in snapshot.changes)
     else:
         lines.append("Clean.")
+
+    lines.extend(
+        [
+            "",
+            "## Diff statistics",
+            "",
+            "- Staged: "
+            + _diff_summary(
+                snapshot.staged_diff.files_changed,
+                snapshot.staged_diff.additions,
+                snapshot.staged_diff.deletions,
+                snapshot.staged_diff.binary_files,
+            ),
+            "- Unstaged: "
+            + _diff_summary(
+                snapshot.unstaged_diff.files_changed,
+                snapshot.unstaged_diff.additions,
+                snapshot.unstaged_diff.deletions,
+                snapshot.unstaged_diff.binary_files,
+            ),
+        ]
+    )
 
     lines.extend(["", "## Recent commits", ""])
     if snapshot.recent_commits:
