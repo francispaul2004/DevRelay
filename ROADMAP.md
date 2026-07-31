@@ -13,7 +13,7 @@ Each scheduled run should complete at most one unchecked item, including tests a
 
 - [x] Add a project configuration file with safe defaults and schema validation.
 - [x] Run configured verification commands and capture concise results.
-- [ ] Summarize staged and unstaged diff statistics.
+- [x] Summarize staged and unstaged diff statistics.
 - [ ] Extract nearby TODO/FIXME markers with configurable exclusions.
 - [ ] Add a `check` command that reports whether a handoff is stale.
 

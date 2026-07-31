@@ -36,6 +36,16 @@ class VerificationResult:
 
 
 @dataclass(frozen=True, slots=True)
+class DiffStatistics:
+    """Aggregate line changes reported by one Git diff view."""
+
+    files_changed: int
+    additions: int
+    deletions: int
+    binary_files: int
+
+
+@dataclass(frozen=True, slots=True)
 class RepositorySnapshot:
     """Portable description of a repository at one point in time."""
 
@@ -49,6 +59,8 @@ class RepositorySnapshot:
     ahead: int | None
     behind: int | None
     changes: tuple[FileChange, ...]
+    staged_diff: DiffStatistics
+    unstaged_diff: DiffStatistics
     recent_commits: tuple[RecentCommit, ...]
     verification_results: tuple[VerificationResult, ...]
 

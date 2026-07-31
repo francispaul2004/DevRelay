@@ -9,6 +9,7 @@ The project is deliberately dependency-light: the first release uses only Python
 - Detect a repository's root, branch, commit, and upstream.
 - Report ahead/behind counts when an upstream exists.
 - Capture modified, staged, and untracked files.
+- Summarize staged and unstaged line-change statistics.
 - Include recent commits for quick orientation.
 - Render a snapshot as Markdown or JSON.
 - Write atomically to a file or print to standard output.

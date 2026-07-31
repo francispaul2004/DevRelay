@@ -34,6 +34,8 @@ class CliTests(unittest.TestCase):
             payload = json.loads(output.getvalue())
             self.assertEqual(payload["branch"], "main")
             self.assertIsNone(payload["head"])
+            self.assertEqual(payload["staged_diff"]["files_changed"], 0)
+            self.assertEqual(payload["unstaged_diff"]["additions"], 0)
 
     def test_writes_output_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
