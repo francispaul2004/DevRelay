@@ -22,6 +22,7 @@ class SnapshotConfig:
     format: str = "markdown"
     recent: int = 5
     verification_commands: tuple[tuple[str, ...], ...] = ()
+    marker_exclusions: tuple[str, ...] = ()
 
 
 def _invalid(path: Path, message: str) -> ConfigurationError:
@@ -49,7 +50,7 @@ def load_config(repository_root: Path) -> SnapshotConfig:
         raise ConfigurationError(f"Could not read {path}: {error}") from error
 
     root = _object(payload, path, "top level")
-    unknown_root = sorted(set(root) - {"snapshot", "verification"})
+    unknown_root = sorted(set(root) - {"snapshot", "verification", "markers"})
     if unknown_root:
         raise _invalid(path, f"unknown top-level key: {unknown_root[0]}")
 
@@ -88,8 +89,19 @@ def load_config(repository_root: Path) -> SnapshotConfig:
             )
         validated_commands.append(tuple(command))
 
+    markers = _object(root.get("markers", {}), path, "markers")
+    unknown_markers = sorted(set(markers) - {"exclude"})
+    if unknown_markers:
+        raise _invalid(path, f"unknown markers key: {unknown_markers[0]}")
+    exclusions = markers.get("exclude", [])
+    if not isinstance(exclusions, list) or any(
+        not isinstance(pattern, str) or not pattern for pattern in exclusions
+    ):
+        raise _invalid(path, "markers.exclude must be an array of non-empty strings")
+
     return SnapshotConfig(
         format=output_format,
         recent=recent,
         verification_commands=tuple(validated_commands),
+        marker_exclusions=tuple(exclusions),
     )

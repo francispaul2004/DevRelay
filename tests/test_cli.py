@@ -147,6 +147,23 @@ class CliTests(unittest.TestCase):
             self.assertEqual(verification[1]["exit_code"], 3)
             self.assertFalse(verification[1]["passed"])
 
+    def test_includes_marker_results(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = self.make_repository(directory)
+            (repository / "notes.md").write_text("TODO: visible\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repository), "add", "notes.md"], check=True)
+            (repository / ".devrelay.json").write_text(
+                '{"snapshot": {"format": "json"}}\n', encoding="utf-8"
+            )
+            subprocess.run(["git", "-C", str(repository), "add", ".devrelay.json"], check=True)
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(["snapshot", "--repo", str(repository)])
+
+            self.assertEqual(result, 0)
+            self.assertEqual(json.loads(output.getvalue())["todo_markers"][0]["path"], "notes.md")
+
 
 if __name__ == "__main__":
     unittest.main()

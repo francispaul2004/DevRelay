@@ -52,6 +52,15 @@ class ConfigurationTests(unittest.TestCase):
             ):
                 load_config(Path(directory))
 
+    def test_loads_marker_exclusions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(directory, {"markers": {"exclude": ["vendor/*", "notes.md"]}})
+
+            self.assertEqual(
+                load_config(Path(directory)).marker_exclusions,
+                ("vendor/*", "notes.md"),
+            )
+
     def test_rejects_invalid_json(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / ".devrelay.json"
@@ -87,6 +96,16 @@ class ConfigurationTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 ConfigurationError,
                 r"verification\.commands\[0\] must be a non-empty array of strings",
+            ):
+                load_config(Path(directory))
+
+    def test_rejects_invalid_marker_exclusion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(directory, {"markers": {"exclude": [""]}})
+
+            with self.assertRaisesRegex(
+                ConfigurationError,
+                "markers.exclude must be an array of non-empty strings",
             ):
                 load_config(Path(directory))
 
