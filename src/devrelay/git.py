@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from fnmatch import fnmatch
 from pathlib import Path
 import subprocess
 
@@ -11,6 +12,7 @@ from .models import (
     FileChange,
     RecentCommit,
     RepositorySnapshot,
+    TodoMarker,
     VerificationResult,
 )
 
@@ -91,6 +93,24 @@ def _recent_commits(repository: Path, limit: int) -> tuple[RecentCommit, ...]:
     return tuple(commits)
 
 
+def _todo_markers(repository: Path, exclusions: tuple[str, ...]) -> tuple[TodoMarker, ...]:
+    """Return TODO/FIXME lines from tracked files, honoring path globs."""
+
+    output = _run_git(repository, "ls-files", "-z").stdout
+    markers: list[TodoMarker] = []
+    for relative_path in output.split("\0"):
+        if not relative_path or any(fnmatch(relative_path, pattern) for pattern in exclusions):
+            continue
+        try:
+            lines = (repository / relative_path).read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for number, text in enumerate(lines, start=1):
+            if "TODO" in text or "FIXME" in text:
+                markers.append(TodoMarker(relative_path, number, text.strip()))
+    return tuple(markers)
+
+
 def repository_root(path: str | Path = ".") -> Path:
     """Return the repository root containing *path*."""
 
@@ -108,6 +128,7 @@ def capture_snapshot(
     path: str | Path = ".",
     recent_limit: int = 5,
     verification_results: tuple[VerificationResult, ...] = (),
+    marker_exclusions: tuple[str, ...] = (),
 ) -> RepositorySnapshot:
     """Capture the current Git context for *path*.
 
@@ -149,6 +170,7 @@ def capture_snapshot(
         changes=_parse_status(status),
         staged_diff=_diff_statistics(root, "--cached"),
         unstaged_diff=_diff_statistics(root),
+        todo_markers=_todo_markers(root, marker_exclusions),
         recent_commits=_recent_commits(root, recent_limit),
         verification_results=verification_results,
     )

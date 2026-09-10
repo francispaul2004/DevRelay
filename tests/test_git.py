@@ -78,6 +78,22 @@ class SnapshotTests(unittest.TestCase):
             with self.assertRaisesRegex(GitRepositoryError, "Not a Git repository"):
                 capture_snapshot(directory)
 
+    def test_collects_markers_and_honors_exclusions(self) -> None:
+        temporary, repository = self.make_repository()
+        self.addCleanup(temporary.cleanup)
+        (repository / "app.py").write_text(
+            "# TODO: finish parser\n# FIXME: handle errors\n", encoding="utf-8"
+        )
+        (repository / "ignored.md").write_text("TODO: do not include\n", encoding="utf-8")
+        run_git(repository, "add", "app.py", "ignored.md")
+
+        snapshot = capture_snapshot(repository, marker_exclusions=("ignored.md",))
+
+        self.assertEqual(
+            [(marker.path, marker.line, marker.text) for marker in snapshot.todo_markers],
+            [("app.py", 1, "# TODO: finish parser"), ("app.py", 2, "# FIXME: handle errors")],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

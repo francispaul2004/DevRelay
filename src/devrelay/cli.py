@@ -79,6 +79,7 @@ def main(arguments: list[str] | None = None) -> int:
             root,
             recent_limit=recent,
             verification_results=verification_results,
+            marker_exclusions=config.marker_exclusions,
         )
         content = render_json(snapshot) if output_format == "json" else render_markdown(snapshot)
         if options.output:

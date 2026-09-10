@@ -73,6 +73,15 @@ def render_markdown(snapshot: RepositorySnapshot) -> str:
         ]
     )
 
+    lines.extend(["", "## TODOs and FIXMEs", ""])
+    if snapshot.todo_markers:
+        lines.extend(
+            f"- `{marker.path}:{marker.line}` {marker.text}"
+            for marker in snapshot.todo_markers
+        )
+    else:
+        lines.append("None found.")
+
     lines.extend(["", "## Recent commits", ""])
     if snapshot.recent_commits:
         lines.extend(

@@ -46,6 +46,15 @@ class DiffStatistics:
 
 
 @dataclass(frozen=True, slots=True)
+class TodoMarker:
+    """A TODO or FIXME found in a repository file."""
+
+    path: str
+    line: int
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
 class RepositorySnapshot:
     """Portable description of a repository at one point in time."""
 
@@ -61,6 +70,7 @@ class RepositorySnapshot:
     changes: tuple[FileChange, ...]
     staged_diff: DiffStatistics
     unstaged_diff: DiffStatistics
+    todo_markers: tuple[TodoMarker, ...]
     recent_commits: tuple[RecentCommit, ...]
     verification_results: tuple[VerificationResult, ...]
 

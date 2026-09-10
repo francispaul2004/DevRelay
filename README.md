@@ -60,6 +60,19 @@ it directly from the repository root without shell interpretation. Snapshots
 include the exit code and up to 1,000 characters of combined output for each
 command.
 
+## TODO and FIXME markers
+
+Snapshots include TODO and FIXME lines from tracked UTF-8 files. Exclude generated or
+otherwise irrelevant paths with shell-style patterns in `markers.exclude`:
+
+```json
+{
+  "markers": {
+    "exclude": ["vendor/*", "generated/**"]
+  }
+}
+```
+
 ## Example handoff
 
 ```markdown
