@@ -15,7 +15,7 @@ Each scheduled run should complete at most one unchecked item, including tests a
 - [x] Run configured verification commands and capture concise results.
 - [x] Summarize staged and unstaged diff statistics.
 - [x] Extract nearby TODO/FIXME markers with configurable exclusions.
-- [ ] Add a `check` command that reports whether a handoff is stale.
+- [x] Add a `check` command that reports whether a handoff is stale.
 
 ## 0.3 — Resume workflow
 

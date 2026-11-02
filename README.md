@@ -22,6 +22,7 @@ DevRelay supports Python 3.11 or newer.
 PYTHONPATH=src python3 -m devrelay snapshot --repo .
 PYTHONPATH=src python3 -m devrelay snapshot --repo . --format json
 PYTHONPATH=src python3 -m devrelay snapshot --repo . --output HANDOFF.md
+PYTHONPATH=src python3 -m devrelay check handoff.json --max-age 24
 ```
 
 For an editable installation:
@@ -59,6 +60,19 @@ concise error. Each verification command is an argument array, so DevRelay runs
 it directly from the repository root without shell interpretation. Snapshots
 include the exit code and up to 1,000 characters of combined output for each
 command.
+
+## Checking handoff freshness
+
+Create a JSON snapshot and save it as a handoff to check whether it has become
+stale. `check` returns zero when the handoff is within the allowed age, one
+when it is stale, and two when the saved handoff cannot be read. Handoffs are
+allowed to be 24 hours old by default; use `--max-age` to choose a different
+number of hours.
+
+```bash
+PYTHONPATH=src python3 -m devrelay snapshot --repo . --format json --output handoff.json
+PYTHONPATH=src python3 -m devrelay check handoff.json --max-age 8
+```
 
 ## TODO and FIXME markers
 
