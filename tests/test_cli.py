@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timedelta, timezone
 from io import StringIO
 import json
 from pathlib import Path
@@ -163,6 +164,49 @@ class CliTests(unittest.TestCase):
 
             self.assertEqual(result, 0)
             self.assertEqual(json.loads(output.getvalue())["todo_markers"][0]["path"], "notes.md")
+
+    def test_check_reports_current_handoff(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            handoff = Path(directory) / "handoff.json"
+            handoff.write_text(
+                json.dumps({"captured_at": datetime.now(timezone.utc).isoformat()}),
+                encoding="utf-8",
+            )
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(["check", str(handoff)])
+
+            self.assertEqual(result, 0)
+            self.assertIn("Handoff is current", output.getvalue())
+
+    def test_check_reports_stale_handoff(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            handoff = Path(directory) / "handoff.json"
+            captured_at = datetime.now(timezone.utc) - timedelta(hours=25)
+            handoff.write_text(
+                json.dumps({"captured_at": captured_at.isoformat()}), encoding="utf-8"
+            )
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(["check", str(handoff)])
+
+            self.assertEqual(result, 1)
+            self.assertIn("Handoff is stale", output.getvalue())
+
+    def test_check_reports_invalid_handoff_without_traceback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            handoff = Path(directory) / "handoff.json"
+            handoff.write_text("not json", encoding="utf-8")
+            errors = StringIO()
+
+            with redirect_stderr(errors):
+                result = main(["check", str(handoff)])
+
+            self.assertEqual(result, 2)
+            self.assertIn("Handoff is not valid JSON", errors.getvalue())
+            self.assertNotIn("Traceback", errors.getvalue())
 
 
 if __name__ == "__main__":
