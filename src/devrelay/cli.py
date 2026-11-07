@@ -44,6 +44,13 @@ def _parser() -> argparse.ArgumentParser:
         metavar="COUNT",
         help="Recent commits to include (default: project configuration or 5).",
     )
+    snapshot.add_argument(
+        "--next-action",
+        action="append",
+        default=None,
+        metavar="ACTION",
+        help="Add a next action (may be repeated; overrides project configuration).",
+    )
 
     check = commands.add_parser("check", help="Report whether a JSON handoff is stale.")
     check.add_argument("handoff", help="Path to a JSON handoff created by snapshot.")
@@ -132,6 +139,11 @@ def main(arguments: list[str] | None = None) -> int:
         config = load_config(root)
         output_format = options.format or config.format
         recent = options.recent if options.recent is not None else config.recent
+        next_actions = (
+            tuple(options.next_action)
+            if options.next_action is not None
+            else config.next_actions
+        )
         verification_results = run_verification_commands(
             root, config.verification_commands
         )
@@ -140,6 +152,7 @@ def main(arguments: list[str] | None = None) -> int:
             recent_limit=recent,
             verification_results=verification_results,
             marker_exclusions=config.marker_exclusions,
+            next_actions=next_actions,
         )
         content = render_json(snapshot) if output_format == "json" else render_markdown(snapshot)
         if options.output:

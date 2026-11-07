@@ -22,6 +22,7 @@ DevRelay supports Python 3.11 or newer.
 PYTHONPATH=src python3 -m devrelay snapshot --repo .
 PYTHONPATH=src python3 -m devrelay snapshot --repo . --format json
 PYTHONPATH=src python3 -m devrelay snapshot --repo . --output HANDOFF.md
+PYTHONPATH=src python3 -m devrelay snapshot --repo . --next-action "Review tests"
 PYTHONPATH=src python3 -m devrelay check handoff.json --max-age 24
 ```
 
@@ -50,7 +51,11 @@ precedence.
     "commands": [
       ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"]
     ]
-  }
+  },
+  "next_actions": [
+    "Review the current working tree.",
+    "Run the verification commands before continuing."
+  ]
 }
 ```
 
@@ -60,6 +65,9 @@ concise error. Each verification command is an argument array, so DevRelay runs
 it directly from the repository root without shell interpretation. Snapshots
 include the exit code and up to 1,000 characters of combined output for each
 command.
+
+`next_actions` adds an ordered list to every handoff. Pass `--next-action ACTION`
+more than once to provide a one-off list that overrides the project configuration.
 
 ## Checking handoff freshness
 

@@ -71,6 +71,7 @@ class RepositorySnapshot:
     staged_diff: DiffStatistics
     unstaged_diff: DiffStatistics
     todo_markers: tuple[TodoMarker, ...]
+    next_actions: tuple[str, ...]
     recent_commits: tuple[RecentCommit, ...]
     verification_results: tuple[VerificationResult, ...]
 

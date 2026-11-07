@@ -42,6 +42,24 @@ class ConfigurationTests(unittest.TestCase):
                 (("python3", "-m", "unittest"),),
             )
 
+    def test_loads_next_actions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(directory, {"next_actions": ["Review changes"]})
+
+            config = load_config(Path(directory))
+
+            self.assertEqual(config.next_actions, ("Review changes",))
+
+    def test_rejects_invalid_next_actions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_config(directory, {"next_actions": [""]})
+
+            with self.assertRaisesRegex(
+                ConfigurationError,
+                "next_actions must be an array of non-empty strings",
+            ):
+                load_config(Path(directory))
+
     def test_rejects_unknown_keys(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             self.write_config(directory, {"snapshot": {"output": "handoff.md"}})

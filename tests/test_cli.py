@@ -74,6 +74,56 @@ class CliTests(unittest.TestCase):
             self.assertEqual(result, 0)
             self.assertEqual(json.loads(output.getvalue())["recent_commits"], [])
 
+    def test_includes_next_actions_from_project_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = self.make_repository(directory)
+            (repository / ".devrelay.json").write_text(
+                json.dumps(
+                    {
+                        "snapshot": {"format": "json"},
+                        "next_actions": ["Review tests", "Publish the branch"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(["snapshot", "--repo", str(repository)])
+
+            self.assertEqual(result, 0)
+            self.assertEqual(
+                json.loads(output.getvalue())["next_actions"],
+                ["Review tests", "Publish the branch"],
+            )
+
+    def test_next_action_options_override_project_configuration(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = self.make_repository(directory)
+            (repository / ".devrelay.json").write_text(
+                '{"next_actions": ["Use the project default"]}\n', encoding="utf-8"
+            )
+            output = StringIO()
+
+            with redirect_stdout(output):
+                result = main(
+                    [
+                        "snapshot",
+                        "--repo",
+                        str(repository),
+                        "--next-action",
+                        "Review the diff",
+                        "--next-action",
+                        "Run tests",
+                    ]
+                )
+
+            self.assertEqual(result, 0)
+            self.assertIn("## Next actions", output.getvalue())
+            self.assertIn("- Review the diff", output.getvalue())
+            self.assertIn("- Run tests", output.getvalue())
+            self.assertNotIn("Use the project default", output.getvalue())
+
     def test_cli_options_override_project_configuration(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             repository = self.make_repository(directory)

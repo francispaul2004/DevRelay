@@ -129,6 +129,7 @@ def capture_snapshot(
     recent_limit: int = 5,
     verification_results: tuple[VerificationResult, ...] = (),
     marker_exclusions: tuple[str, ...] = (),
+    next_actions: tuple[str, ...] = (),
 ) -> RepositorySnapshot:
     """Capture the current Git context for *path*.
 
@@ -171,6 +172,7 @@ def capture_snapshot(
         staged_diff=_diff_statistics(root, "--cached"),
         unstaged_diff=_diff_statistics(root),
         todo_markers=_todo_markers(root, marker_exclusions),
+        next_actions=next_actions,
         recent_commits=_recent_commits(root, recent_limit),
         verification_results=verification_results,
     )
