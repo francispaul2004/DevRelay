@@ -19,7 +19,7 @@ Each scheduled run should complete at most one unchecked item, including tests a
 
 ## 0.3 — Resume workflow
 
-- [ ] Add a structured "next actions" section supplied by CLI flags or config.
+- [x] Add a structured "next actions" section supplied by CLI flags or config.
 - [ ] Compare two snapshots and explain what changed between sessions.
 - [ ] Generate shell-safe resume commands without executing them.
 - [ ] Add redaction rules for paths and user-defined sensitive patterns.

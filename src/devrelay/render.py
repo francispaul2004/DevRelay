@@ -82,6 +82,12 @@ def render_markdown(snapshot: RepositorySnapshot) -> str:
     else:
         lines.append("None found.")
 
+    lines.extend(["", "## Next actions", ""])
+    if snapshot.next_actions:
+        lines.extend(f"- {action}" for action in snapshot.next_actions)
+    else:
+        lines.append("None specified.")
+
     lines.extend(["", "## Recent commits", ""])
     if snapshot.recent_commits:
         lines.extend(
